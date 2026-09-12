@@ -1,0 +1,11 @@
+{
+  "name": "Ashvault",
+  "short_name": "Ashvault",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#100c0a",
+  "theme_color": "#c47a3a",
+  "icons": [{ "src": "icons/icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any" }]
+}
