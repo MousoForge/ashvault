@@ -1,76 +1,10 @@
 AV.SAVE_KEY = "ashvault.save.v1";
-
-AV.defaultSave = () => ({
-  cinders: 0,
-  pouchSize: 2,
-  stashSize: 8,
-  hpBonus: 0,
-  dashBonus: 0,
-  houseLevel: 0,
-  unlocks: {},
-  stash: [],
-  equipped: { weapon: AV.makeItem("rusty_cleaver"), armor: AV.makeItem("ash_wraps"), relic: null },
-  stats: { extracts: 0, deaths: 0, kills: 0, bestFloor: 0 }
-});
-
-AV.loadSave = () => {
-  try {
-    const raw = localStorage.getItem(AV.SAVE_KEY);
-    if (!raw) return AV.defaultSave();
-    const s = Object.assign(AV.defaultSave(), JSON.parse(raw));
-    s.equipped = s.equipped || {};
-    if (!s.equipped.weapon) s.equipped.weapon = AV.makeItem("rusty_cleaver");
-    return s;
-  } catch (err) {
-    return AV.defaultSave();
-  }
-};
-
-AV.writeSave = (s) => {
-  try { localStorage.setItem(AV.SAVE_KEY, JSON.stringify(s)); } catch (err) {}
-};
-
+AV.defaultSave = () => ({ cinders: 0, pouchSize: 2, stashSize: 8, hpBonus: 0, dashBonus: 0, houseLevel: 0, unlocks: {}, stash: [], equipped: { weapon: AV.makeItem("rusty_cleaver"), armor: AV.makeItem("ash_wraps"), relic: null }, stats: { extracts: 0, deaths: 0, kills: 0, bestFloor: 0 } });
+AV.loadSave = () => { try { const raw = localStorage.getItem(AV.SAVE_KEY); if (!raw) return AV.defaultSave(); const s = Object.assign(AV.defaultSave(), JSON.parse(raw)); s.equipped = s.equipped || {}; if (!s.equipped.weapon) s.equipped.weapon = AV.makeItem("rusty_cleaver"); return s; } catch (err) { return AV.defaultSave(); } };
+AV.writeSave = (s) => { try { localStorage.setItem(AV.SAVE_KEY, JSON.stringify(s)); } catch (err) {} };
 AV.wipeSave = () => { localStorage.removeItem(AV.SAVE_KEY); };
-
-AV.canBuy = (save, shopId) => {
-  const row = AV.META_SHOP.find((x) => x.id === shopId);
-  if (!row || save.unlocks[shopId]) return false;
-  if (row.req && !save.unlocks[row.req]) return false;
-  return save.cinders >= row.cost;
-};
-
-AV.buy = (save, shopId) => {
-  if (!AV.canBuy(save, shopId)) return false;
-  const row = AV.META_SHOP.find((x) => x.id === shopId);
-  save.cinders -= row.cost;
-  save.unlocks[shopId] = true;
-  row.apply(save);
-  AV.writeSave(save);
-  return true;
-};
-
-AV.stackInto = (list, item, cap) => {
-  if (!item) return false;
-  const proto = AV.ITEMS[item.id];
-  if (proto && proto.stack) {
-    const hit = list.find((x) => x && x.id === item.id);
-    if (hit) { hit.qty = Math.min(proto.stack, hit.qty + item.qty); return true; }
-  }
-  if (list.length >= cap) return false;
-  list.push(item);
-  return true;
-};
-
+AV.canBuy = (save, shopId) => { const row = AV.META_SHOP.find((x) => x.id === shopId); if (!row) return false; if (save.unlocks[shopId]) return false; if (row.req && !save.unlocks[row.req]) return false; return save.cinders >= row.cost; };
+AV.buy = (save, shopId) => { if (!AV.canBuy(save, shopId)) return false; const row = AV.META_SHOP.find((x) => x.id === shopId); save.cinders -= row.cost; save.unlocks[shopId] = true; row.apply(save); AV.writeSave(save); return true; };
+AV.stackInto = (list, item, cap) => { if (!item) return false; const proto = AV.ITEMS[item.id]; if (proto && proto.stack) { const hit = list.find((x) => x && x.id === item.id); if (hit) { hit.qty = Math.min(proto.stack, hit.qty + item.qty); return true; } } if (list.length >= cap) return false; list.push(item); return true; };
 AV.countMat = (list, id) => list.filter((x) => x && x.id === id).reduce((n, x) => n + (x.qty || 1), 0);
-
-AV.takeMat = (list, id, n) => {
-  let need = n;
-  for (let i = list.length - 1; i >= 0 && need > 0; i--) {
-    const x = list[i];
-    if (!x || x.id !== id) continue;
-    const have = x.qty || 1;
-    if (have <= need) { need -= have; list.splice(i, 1); }
-    else { x.qty = have - need; need = 0; }
-  }
-  return need === 0;
-};
+AV.takeMat = (list, id, n) => { let need = n; for (let i = list.length - 1; i >= 0 && need > 0; i--) { const x = list[i]; if (!x || x.id !== id) continue; const have = x.qty || 1; if (have <= need) { need -= have; list.splice(i, 1); } else { x.qty = have - need; need = 0; } } return need === 0; };
